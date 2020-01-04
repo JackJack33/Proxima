@@ -1,0 +1,2 @@
+# Proxima
+ minehut rpg server
