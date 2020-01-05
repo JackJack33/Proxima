@@ -1,0 +1,14 @@
+on join:
+  if {active::nw::*} contains player:
+    remove player from {active::nw::*}
+    remove 3 from max health of player
+
+command /day:
+  permission: op
+  trigger:
+    set time in world "ul_prox" to 5:31
+
+command /night:
+  permission: op
+  trigger:
+    set time in world "ul_prox" to 19:01

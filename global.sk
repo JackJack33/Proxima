@@ -1,0 +1,196 @@
+#
+# Join Events
+#
+
+on join:
+  while player is online:
+    send action bar "&cHP [%player's health%&c/%player's max health%&c] &9MP [%{mana::%player's uuid%}%&9/%{maxmana::%player's uuid%}%&9] &6Coins [%{coins::%player's uuid%}%&6]" to player
+    wait 0.5 seconds
+
+on join:
+  while player is online:
+    if {mana::%player's uuid%} < {maxmana::%player's uuid%}:
+      add 1 to {mana::%player's uuid%}
+    wait 2 seconds
+
+on join:
+  if player is op:
+    send "&cNOTICE: Operators, please do not use consumables (potions, food, etc) in creative mode, theres a bug with skript that makes it crash the server, thanks! ~Jack"
+  set player's gamemode to adventure
+  wait 2 ticks
+  if {joined::%player's uuid%} is not set:
+    add 1 to {joins}
+    teleport player to location(7.5, 84, 115.5, world("ul_prox"))
+    wait 1 tick
+    set {checkpoint::%player's uuid%} to location of block at location of player
+    broadcast "&7Welcome %player%&7! (%{joins}%&7)"
+    set {joined::%player's uuid%} to 1
+  else:
+    teleport player to {checkpoint::%player's uuid%}
+    send "&7Welcome back!"
+  if {coins::%player's uuid%} is not set:
+    set {coins::%player's uuid%} to 0
+  if {bank::%player's uuid%} is not set:
+    set {bank::%player's uuid%} to 0
+  if {mana::%player's uuid%} is not set:
+    set {mana::%player's uuid%} to 0
+  if {maxmana::%player's uuid%} is not set:
+    set {maxmana::%player's uuid%} to 25
+
+#
+# Damage/Death/Respawn Events
+#
+
+on damage:
+  if victim is monster:
+    if damage cause is burn:
+      cancel event
+      extinguish victim
+  if victim is player:
+    if attacker is player:
+      cancel event
+
+on death:
+  if victim is player:
+    if attacker is set:
+      if uncolored name of attacker is "Guard":
+        broadcast "&7%victim% &7annoyed the guards"
+      else:
+        broadcast "&7%victim% &7was slain by &7%uncolored name of attacker%"
+    else:
+      broadcast "&7%victim% &7was slain"
+    set {_r} to random integer between 10 and 18
+    set {_r} to 0.01 * {_r}
+    set {_cd} to floor({_r}*{coins::%victim's uuid%})
+    send "&7You lost &f%{_r}*100%&f%% &7of your coins! &7(%{_cd}%&7)" to victim
+    remove {_cd} from {coins::%victim's uuid%}
+    drop 0.35*{_cd} of gold nugget at victim's location
+
+on respawn:
+  teleport player to {checkpoint::%player's uuid%}
+
+on hunger meter change:
+  cancel event
+  set player's hunger to 20
+
+#
+# Economy
+#
+
+command /coins [<offlineplayer>]:
+  aliases: /c, /balance, /bal
+  trigger:
+    send "&8&m----------"
+    if arg-1 is not set:
+      send "&7%player%&7's coins: &6%{coins::%player's uuid%}%"
+    else:
+      send "&7%arg-1%&7's coins: &6%{coins::%arg-1's uuid%}%"
+    send "&8&m----------"
+
+#
+# Misc
+#
+
+on craft:
+  if player is not op:
+    cancel event
+
+on chat:
+  if player is op:
+    set chat format to "&c[A] &7%player%&f: %message%"
+  else:
+    set chat format to "&7%player%&f: %message%"
+
+on walk on gold block:
+  if {checkpoint::%player's uuid%} != location of block above event-block:
+    set {checkpoint::%player's uuid%} to location of block above event-block
+    send "&7Checkpoint saved at &f%{checkpoint::%player's uuid%}%&7!"
+
+#
+# Operator Commands
+#
+
+command /time:
+  permission: op
+  trigger:
+    send "&cCommand disabled because it breaks things, use /day or /night!"
+
+command /invsee <player>:
+  permission: op
+  trigger:
+    open arg-1's inventory for player
+
+command /eco <offlineplayer> <text> <integer>:
+  permission: op
+  usage: /eco <player> <add|set> <int>
+  trigger:
+    if arg-2 is "set":
+      set {coins::%arg-1's uuid%} to arg-3
+      send "&7Set &f%arg-1%'s &7balance to &6%arg-3% &6coins&7!"
+    if arg-2 is "add":
+      add arg-3 to {coins::%arg-1's uuid%}
+      send "&7Added &6%arg-3% &6coins &7to &f%arg-1%&f's &7balance!"
+    else:
+      send "&7Syntax error"
+
+command /ci [<offlineplayer>]:
+  permission: op
+  trigger:
+    if arg-1 is not set:
+      clear player's inventory
+    if arg-1 is set:
+      clear arg-1's inventory
+
+command /setwarp <text>:
+  permission: op
+  trigger:
+    if {warps::%arg-1%} is not set:
+      set {warps::%arg-1%} to location of block at location of player
+      send "&7Set warp &f%arg-1% &7at location &f%{warps::%arg-1%}%&7!"      
+    else:
+      send "&7Warp already defined!"
+
+command /delwarp <text>:
+  permission: op
+  trigger:
+    if {warps::%arg-1%} is set:
+      delete {warps::%arg-1%}
+      send "&7Deleted warp &f%arg-1%&7!"
+    else:
+      send "&7Warp does not exist!"
+
+command /warp <text>:
+  permission: op
+  trigger:
+    if {warps::%arg-1%} is set:
+      teleport player to {warps::%arg-1%}
+      send "&7Teleporting..."
+    else:
+      send "&7Warp does not exist!"
+
+command /warps:
+  permission: op
+  trigger:
+    loop {warps::*}:
+      add loop-index to {_list::*}
+    send "&7%{_list::*}%"
+
+command /gmc:
+  permission: op
+  trigger:
+    set player's gamemode to creative
+
+command /gms:
+  permission: op
+  trigger:
+    set player's gamemode to survival
+
+command /gma:
+  permission: op
+  trigger:
+    set player's gamemode to adventure
+
+command /gmsp:
+  permission: op
+  trigger:
+    set player's gamemode to spectator

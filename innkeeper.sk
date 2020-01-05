@@ -1,0 +1,96 @@
+#
+# Main
+#
+
+
+function innkeeper(p: player):
+  set {_u} to {_p}'s uuid
+  openGui({_p}, {_name}, 2)
+
+#
+# Bank
+#
+
+  format gui slot 0 of {_p} with gold ingot named "&fDeposit Gold" lored "&7You won't lose any gold||&7in the bank when you die." to close:
+    openGui({_p}, "Bank", 1)
+    format gui slot 0 of {_p} with gold block named "&f250" lored "&7Deposit 250 gold" to run:
+      goldBank({_p}, "add", 250)
+    format gui slot 1 of {_p} with gold ingot named "&f100" lored "&7Deposit 100 gold" to run:
+      goldBank({_p}, "add", 100)
+    format gui slot 2 of {_p} with gold nugget named "&f50" lored "&7Deposit 50 gold" to run:
+      goldBank({_p}, "add", 50)
+    set {_i} to gold pickaxe
+    add "{HideFlags:63}" to nbt of {_i}
+    format gui slot 3 of {_p} with {_i} named "&fAll" lored "&7Deposit all your gold" to run:
+      set {_c} to {coins::%{_u}%}
+      goldBank({_p}, "add", {_c})
+    format gui slot 5 of {_p} with chest named "&fCurrent Gold:" lored "&7Wallet: &6%{coins::%{_u}%}% &6coins ||&7Bank: &6%{bank::%{_u}%}% &6coins"
+    format gui slot 8 of {_p} with empty map named "&fBack" lored "&7Go back to main menu" to close:
+      innkeeper({_p})
+
+  format gui slot 1 of {_p} with iron ingot named "&fWithdraw Gold" lored "&7Take gold out of your||&7personal bank." to close:
+    openGui({_p}, "Bank", 1)
+    format gui slot 0 of {_p} with iron block named "&f250" lored "&7Withdraw 250 gold" to run:
+      goldBank({_p}, "rem", 250)
+    format gui slot 1 of {_p} with iron ingot named "&f100" lored "&7Withdraw 100 gold" to run:
+      goldBank({_p}, "rem", 100)
+    format gui slot 2 of {_p} with iron nugget named "&f50" lored "&7Withdraw 50 gold" to run:
+      goldBank({_p}, "rem", 50)
+    set {_i} to iron pickaxe
+    add "{HideFlags:63}" to nbt of {_i}
+    format gui slot 3 of {_p} with {_i} named "&fAll" lored "&7Withdraw all your gold" to run:
+      set {_c} to {bank::%{_u}%}
+      goldBank({_p}, "rem", {_c})
+    format gui slot 5 of {_p} with chest named "&fCurrent Gold:" lored "&7Wallet: &6%{coins::%{_u}%}% &6coins ||&7Bank: &6%{bank::%{_u}%}% &6coins"
+    format gui slot 8 of {_p} with empty map named "&fBack" lored "&7Go back to main menu" to close:
+      innkeeper({_p})
+
+#
+# Guilds 
+#
+
+  format gui slot 3 of {_p} with gold horse armor named "&fGuilds" lored "&7Manage guild stuff" to close:
+    openGui({_p}, "Guilds", 1)
+    if {guild::%{_u}%} is not set:
+      format gui slot 0 of {_p} with diamond named "&fCreate Guild" lored "&7Create your own guild." to close:
+        send "yeet" to {_p}
+      format gui slot 1 of {_p} with emerald named "&fJoin Guild" lored "&7Look for guilds to join." to close:
+        guildMenu({_p}, "join")
+
+
+#
+# Functions
+#
+
+function guildMenu(p: player, t:text):
+  if {_t} = "join":
+    openGui({_p}, "Join Guild", 6)
+    guildMenuPage({_p}, 1)
+    format gui slot 53 of {_p} with empty map named "&fBack" lored "&7Go back to main menu" to close:
+      innkeeper({_p})
+
+function guildMenuPage(p: player, i: integer):
+  loop 45 times:
+    set {_math} to loop-number + ((45 * {_i}) - 45)
+    format gui slot loop-number - 1 of {_p} with diamond lored "&c%{_math}%"
+
+
+
+function goldBank(p: player, t: text, a: integer):
+  set {_u} to {_p}'s uuid
+  if {_t} = "add":
+    if {_a} > {coins::%{_u}%}:
+      send "&7Not enough funds!" to {_p}
+    else:
+      play sound "item.armor.equip_chain" at volume 1 and pitch 1 at location of {_p}
+      add {_a} to {bank::%{_u}%}
+      remove {_a} from {coins::%{_u}%}
+      format gui slot 5 of {_p} with chest named "&fCurrent Gold:" lored "&7Wallet: &6%{coins::%{_u}%}% &6coins ||&7Bank: &6%{bank::%{_u}%}% &6coins"
+  else if {_t} = "rem":
+    if {_a} > {bank::%{_u}%}:
+      send "&7Not enough funds!" to {_p}
+    else:
+      play sound "item.armor.equip_chain" at volume 1 and pitch 1 at location of {_p}
+      remove {_a} from {bank::%{_u}%}
+      add {_a} to {coins::%{_u}%}
+      format gui slot 5 of {_p} with chest named "&fCurrent Gold:" lored "&7Wallet: &6%{coins::%{_u}%}% &6coins ||&7Bank: &6%{bank::%{_u}%}% &6coins"

@@ -1,0 +1,116 @@
+on right click:
+  set {_n} to uncolored name of player's tool
+  set {_l} to uncolored lore of player's tool
+     
+#
+# Potions
+#
+     
+  if {_l} contains "restores":
+    set {_split::*} to {_l} split at " "
+    set {_a} to {_split::2} parsed as integer
+    if {_split::3} is "HP":
+      if player's gamemode is not creative:
+        remove 1 of player's tool lored lore of player's tool from player
+        add {_a} to player's health
+        execute console command "/execute at %player% run playsound entity.generic.drink master @a"
+    if {_split::3} is "MP":
+      if player's gamemode is not creative:
+        remove 1 of player's tool lored lore of player's tool from player
+        add {_a} to {mana::%player's uuid%}
+        if {mana::%player's uuid%} > {maxmana::%player's uuid%}:
+          set {mana::%player's uuid%} to {maxmana::%player's uuid%}
+        execute console command "/execute at %player% run playsound entity.generic.drink master @a"
+     
+#
+# Weapons
+#
+     
+  if {_n} is "Blowpipe":
+    if player has 1 wheat seeds named "&fSeeds" lored "&7Ammo":
+      remove 1 wheat seeds named "&fSeeds" lored "&7Ammo" from player
+      play sound "block.dispenser.launch" at volume 1 and pitch 2 at location of player
+      set {_l} to location 2 above player
+      set {_loc} to lineCheck(player, 1)
+      drawLine particle redstone, RGB 173, 235, 173, center {_l}, target {_loc}, id "%player%", solid true, density 10, visibleRange 32
+      wait 1 tick
+      stopEffect id "%player%"
+     
+  if {_n} is "Smoke Cloud":
+    if spellCheck(player, 10) = 1:
+      stopEffect id "%player%"
+      set {_loc} to location of block at player
+      drawSphere style 1, particle "smoke", center {_loc}, id "%player%", rM false, radius 3, density 25, visibleRange 32, disXYZ 0, 0, 0, pulseDelay 1
+      loop 8 times:
+        set {_t::*} to (all entities) where [sphereCheck(input, {_loc}, 3.5, 1) = ""]
+        wait 1 second
+      stopEffect id "%player%"
+      endCheck(player)
+   
+  if {_n} is "Starbeam":
+    if spellCheck(player, 10) = 1:
+      set {_l} to location 2 above player
+      set {_loc} to lineCheck(player, 4.5)
+      drawLine particle redstone, RGB 255, 51, 204, center {_l}, target {_loc}, id "%player%", solid true, density 10, visibleRange 32
+      wait 1 tick
+      stopEffect id "%player%"
+      endCheck(player)
+
+#
+# Specials
+#
+
+on step on cracked stone bricks:
+  if uncolored name of player's boots is "Weighted Boots":
+    set event-block to air
+    play sound "block.stone.break" at volume 1 and pitch 0.5 at location of event-block
+    drawDot count 20, particle "blockcrack", material cracked stone bricks, speed 0.2, XYZ 0.3, 0.3, 0.3, center location of event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
+    wait 5 seconds
+    set event-block to cracked stone bricks
+    play sound "block.stone.place" at volume 1 and pitch 1 at location of event-block
+    drawDot count 20, particle "smoke", speed 0.02, XYZ 0.3, 0.3, 0.3, center location of event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
+
+#
+# Functions
+#
+ 
+function spellCheck(p: player, i: integer) :: integer:
+  set {_u} to uuid of {_p}
+  if {spellcheck::%{_p}%} is not set:
+    if {mana::%{_u}%} >= {_i}:
+      set {spellcheck::%{_p}%} to 1
+      remove {_i} from {mana::%{_u}%}
+      return 1
+    else:
+      send "&7Not enough mana!" to {_p}
+      return 0
+  else:
+    send "&7You already have an active spell!" to {_p}
+    return 0
+ 
+function endCheck(p: player):
+  delete {spellcheck::%{_p}%}
+
+function endClick(p: player):
+  delete {click::%{_p}%}
+ 
+function sphereCheck(e: entity, loc: location, rad: number, d: number) :: text:
+  if distance between location of {_e} and {_loc} <= {_rad}:
+    if "player, armor stand, slime" does not contain "%type of {_e}%":
+      damage {_e} by {_d}
+  return ""
+ 
+function lineCheck(p: player, d: number) :: location:
+  set {_locp} to location of {_p}
+  set {_locb} to location of target block of {_p}
+  if {_p}'s target is set:
+    set {_loct} to location of {_p}'s target
+    if distance between {_locp} and {_locb} > distance between {_locp} and {_loct}:
+      set {_r} to location 2 above {_p}'s target
+      if {_p}'s target is not a player:
+        damage {_p}'s target by {_d}
+    else:
+      set {_r} to location 1 above target block of {_p}
+  else:
+    set {_r} to location 1 above target block of {_p}
+  return {_r}

@@ -1,0 +1,4 @@
+on right click on dropper:
+  cancel event
+  if "%region at player%" contains "skeleton":
+    if player has bone named "&eBone Key"

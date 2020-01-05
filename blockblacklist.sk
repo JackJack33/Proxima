@@ -1,0 +1,59 @@
+on click on log:
+  if player is not op:
+    cancel event
+
+on click on barrel:
+  if player is not op:
+    cancel event
+
+on click on brewing stand:
+  if player is not op:
+    cancel event
+
+on click on cauldron:
+  if player is not op:
+    cancel event
+
+on click on furnace:
+  if player is not op:
+    cancel event
+
+on click on blast furnace:
+  if player is not op:
+    cancel event
+
+on click on crafting table:
+  if player is not op:
+    cancel event
+
+on click on note block:
+  if player is not op:
+    cancel event
+
+on click on red bed:
+  if player is not op:
+    cancel event
+
+on click on enchanting table:
+  if player is not op:
+    cancel event
+
+on click on anvil:
+  if player is not op:
+    cancel event
+
+on break:
+  if player is not op:
+    cancel event
+
+on place:
+  if player is not op:
+    cancel event
+
+on click on trapdoor:
+  if player is not op:
+    cancel event
+
+on explode:
+  cancel event
+  delete event-entity

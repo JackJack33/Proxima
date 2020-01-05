@@ -1,0 +1,82 @@
+#
+# Functions
+#
+
+function openGui(p: offlineplayer, t: string, n: integer):
+  open virtual chest inventory with size {_n} named {_t} to {_p}
+
+function setDmg(p: player, n: number):
+  set {_r1} to random integer between 1 and 9999999
+  set {_r2} to random integer between 1 and 9999999
+  set {_r3} to random integer between 1 and 9999999
+  set {_r4} to random integer between 1 and 9999999
+  add "{Unbreakable:1,HideFlags:63,AttributeModifiers:[{AttributeName:""generic.attackDamage"",Name:""generic.attackDamage"",Amount:%{_n}%,Operation:0,UUIDLeast:%{_r1}%,UUIDMost:%{_r2}%,Slot:""mainhand""},{AttributeName:""generic.attackSpeed"",Name:""generic.attackSpeed"",Amount:1,Operation:0,UUIDLeast:%{_r3}%,UUIDMost:%{_r4}%,Slot:""mainhand""}]}" to nbt of {_p}'s tool
+  set {_lore} to lore of {_p}'s tool
+  set lore of {_p}'s tool to "%{_lore}%||&7Damage: +%{_n}%"
+
+function setArm(p: player, n: number, t: text):
+  set {_r1} to random integer between 1 and 9999999
+  set {_r2} to random integer between 1 and 9999999
+  add "{Unbreakable:1,HideFlags:63,AttributeModifiers:[{AttributeName:""generic.armor"",Name:""generic.armor"",Amount:%{_n}%,Operation:0,UUIDLeast:%{_r1}%,UUIDMost:%{_r2}%,Slot:""%{_t}%""}]}" to nbt of {_p}'s tool
+  set {_lore} to lore of {_p}'s tool
+  set lore of {_p}'s tool to "%{_lore}%||&7Armor: +%{_n}%"
+
+#
+# Books
+#
+
+command /books <integer>:
+  permission: op
+  trigger:
+    if arg-1 = 1:
+      openGui(player, "Books", 6)
+      loop 54 times:
+        set {_i} to shears
+        add "{Damage:%loop-number%,Unbreakable:1,HideFlags:63}" to nbt of {_i}
+        format gui slot loop-number - 1 of player with {_i} to run:
+          give player {_i}
+    else if arg-1 = 2:
+      openGui(player, "Books", 2)
+      loop 18 times:
+        set {_i} to shears
+        add "{Damage:%loop-number + 54%,Unbreakable:1,HideFlags:63}" to nbt of {_i}
+        format gui slot loop-number - 1 of player with {_i} to run:
+          give player {_i}
+    else:
+      send "&7Use 1 or 2 since I'm too lazy to code a proper function"
+
+#
+# Items
+#
+
+command /items [<integer>]:
+  permission: op
+  trigger:
+    if arg-1 is not set:
+      set {_n} to 1
+    else:
+      set {_n} to arg-1
+    openGui(player, "Items pg %{_n}%", 6)
+    loop 56 times:
+      set {_math} to loop-number + ((56 * {_n}) - 56)
+      set {_l} to lore of {items::%{_math}%}
+      set {_l2} to "%{_l}%|| ||&cID: %{_math}%"
+      format gui slot loop-number - 1 of player with {items::%{_math}%} lored {_l2} to run:
+        give player {items::%{_math}%}
+
+command /additem [<integer>]:
+  permission: op
+  trigger:
+    if arg-1 is set:
+      set {items::%arg-1%} to player's tool
+      send "&7Set {items::%arg-1%&7} to &f%name of player's tool%&7!"
+    else:
+      add player's tool to {items::*}
+      set {_n} to size of {items::*}
+      send "&7Set {items::%{_n}%&7} to &f%name of player's tool%&7!"
+
+command /delitem <integer>:
+  permission: op
+  trigger:
+    send "&7Removed &f%{items::%arg-1 - 1%}% &7from {items::*}"
+    delete {items::%arg-1 - 1%}

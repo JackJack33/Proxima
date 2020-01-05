@@ -1,0 +1,83 @@
+#
+# Events
+#
+
+on right click on entity:
+  if entity is citizen:
+    set {_id} to citizen id of clicked entity
+    set {_name} to uncolored name of citizen {_id}
+    if {_name} != "Guard" or "Innkeeper":
+      openGui(player, {_name}, 2)
+      set {_n} to size of {shop.%{_id}%::*}
+      loop {_n} times:
+        set {_i} to {items::%{shop.%{_id}%::%loop-number%}%}
+        set {_i2} to {items::%{shop.%{_id}%::%loop-number%}%}
+        set {_l} to lore of {_i}
+        set {_p} to {shop.%{_id}%.price::%loop-number%}
+        if {shop.%{_id}%.specialtype::%loop-number%} is set:
+          set {_hsp} to 1
+          set {_sp} to {shop.%{_id}%.specialprice::%loop-number%}
+          set {_si} to {items::%{shop.%{_id}%.specialtype::%loop-number%}%}
+          set {_st} to "%{_si}%"
+          set lore of {_i} to "%{_l}%||&6Price: %{_p}% &6coins||&aSpecial: %{shop.%{_id}%.specialprice::%loop-number%}% &aof %display name of {_si}%"
+        else:
+          set lore of {_i} to "%{_l}%||&6Price: %{_p}% &6coins"
+        format gui slot loop-number - 1 of player with {_i} to run:
+          if {coins::%player's uuid%} >= {_p}:
+            if {_hsp} = 1:
+              if amount of {_si} in player's inventory >= {_sp}:
+                remove {_sp} of {_si} lored lore of {_si} from player's inventory
+                send "&7- %{_sp}% &7%display name of {_si}%"
+                remove {_p} from {coins::%player's uuid%}
+                send "&7- %{_p}% &7Coins"
+                give player {_i2}
+              else:
+                send "&7Not enough of %display name of {_si}%&7!"
+            if {_hsp} is not set:
+              remove {_p} from {coins::%player's uuid%}
+              send "&7- %{_p}% &7Coins"
+              give player {_i2}
+          else:
+            send "&7Not enough funds! (%{coins::%player's uuid%}%&7/%{_p}%&7)"
+
+      loop 18 - {_n} times:
+        format gui slot loop-number + {_n} - 1 of player with air
+      if {shopopen::%player's uuid%} is not set:
+        set {shopopen::%player's uuid%} to 1
+
+    else if {_name} = "Innkeeper":
+      innkeeper(player)
+
+on inventory close:
+  if {shopopen::%player's uuid%} = 1:
+    delete {shopopen::%player's uuid%}
+
+on inventory click:
+  if {shopopen::%player's uuid%} = 1:
+    cancel event
+
+#
+# Shop Editor Commands
+#
+
+command /addshop <integer> <integer>:
+  usage: /addshop <citizen id> <item gui id>
+  permission: op
+  trigger:
+    add arg-2 to {shop.%arg-1%::*}
+    send "&7Added item with id &f%arg-2% &7to shop with id &f%arg-1%&7!"
+
+command /setprice <integer> <integer> <integer>:
+  usage: /setprice <citizen id> <item placement> <price>
+  permission: op
+  trigger:
+    set {shop.%arg-1%.price::%arg-2%} to arg-3
+    send "&7Set price of item &f%arg-2% &7at shop &f%arg-1% &7to &6%arg-3%&7!"
+
+command /setspecial <integer> <integer> <integer> <integer>:
+  usage: /setspecial <citizen id> <item placement> <special id> <amount>
+  permission: op
+  trigger:
+    set {shop.%arg-1%.specialtype::%arg-2%} to arg-3
+    set {shop.%arg-1%.specialprice::%arg-2%} to arg-4
+    send "&7Set special price of item &f%arg-2% &7at shop &f%arg-1% &7to &f%arg-4% &7of item at &6%arg-3%&7!"

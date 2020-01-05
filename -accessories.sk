@@ -1,0 +1,101 @@
+#
+# Equip/Unequip
+#
+ 
+every 3 ticks:
+  loop {acooldown::*}:
+    if loop-value > 0:
+      subtract 1 from {acooldown::%loop-index%}
+    else:
+      delete {acooldown::%loop-index%}
+ 
+on inventory click:
+  if index of event-slot is 17, 26 or 35:
+    if {acooldown::%player%} is not set:
+      set {_var::*} to getItems()
+      if {_var::*} contains type of cursor slot of player:
+        equipAcc(player, type of cursor slot of player)
+      else:
+        unequip(player, type of clicked slot)
+      set {acooldown::%player%} to 1
+    else:
+      cancel event
+      send "&7You're equipping too fast!"
+ 
+function getItems() :: items:
+  return lapis lazuli, stone and iron helmet
+ 
+function equipAcc(p: player, i: item):
+  if {_i} is lapis lazuli:
+    if {accessories::nw::*} does not contain {_p}:
+      add {_p} to {accessories::nw::*}
+      send "&7Equipped Night Ward" to {_p}
+      activate("nightward", {_p}, 1)
+ 
+function unequip(p: player, i: item):
+  if {_i} is lapis lazuli:
+    if {accessories::nw::*} contains {_p}:
+      remove {_p} from {accessories::nw::*}
+      send "&7Unequipped Night Ward" to {_p}
+      activate("nightward", {_p}, 0)
+ 
+function activate(t: text, p: offlineplayer, s: integer):
+  set {_u} to {_p}'s uuid
+  if {_t} = "nightward":
+    if {_s} = 1:
+      if {night} = 1:
+        if {active::nw::*} does not contain {_p}:
+          add {_p} to {active::nw::*}
+          add 3 to {maxhp::%{_u}%}
+    if {_s} = 0:
+      if {active::nw::*} contains {_p}:
+        remove {_p} from {active::nw::*}
+        remove 3 from {maxhp::%{_u}%}
+    set {_p}'s max health to {maxhp::%{_u}%}
+ 
+#
+# Accessory Events
+#
+
+command /setmaxhp <offlineplayer> <integer>:
+  aliases: /smhp
+  permission: op
+  trigger:
+    set {maxhp::%arg-1's uuid%} to arg-2
+    set arg-1's max health to {maxhp::%arg-1's uuid%}
+
+command /day:
+  permission: op
+  trigger:
+    set time in world "ul_prox" to 5:31
+    set {night} to 0
+    loop {active::nw::*}:
+      activate("nightward", loop-value, 0)
+
+command /night:
+  permission: op
+  trigger:
+    set time in world "ul_prox" to 19:01
+    set {night} to 1
+    loop {accessories::nw::*}:
+      activate("nightward", loop-value, 1)
+ 
+on join:
+  wait 2 ticks
+  if {maxhp::%player's uuid%} is not set:
+    set {maxhp::%player's uuid%} to 10
+    set player's max health to {maxhp::%player's uuid%}
+  if {night} = 1:
+    activate("nightward", player, 1)
+  if {night} = 0:
+    activate("nightward", player, 0)
+ 
+at 19:00 in "ul_prox":
+  set {night} to 1
+  loop {accessories::nw::*}:
+    activate("nightward", loop-value, 1)
+ 
+at 5:30 in "ul_prox":
+  set {night} to 0
+  loop {active::nw::*}:
+    activate("nightward", loop-value, 0)
