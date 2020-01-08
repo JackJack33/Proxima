@@ -2,3 +2,7 @@ on right click on dropper:
   cancel event
   if "%region at player%" contains "skeleton":
     if player has bone named "&eBone Key"
+    set {_doorloc::*} to location of all blocks in radius 3 of event-block
+    set {_door::*} to {_doorloc::*} where [block at input = oak planks]
+    set block at {_door::*} to air
+    
