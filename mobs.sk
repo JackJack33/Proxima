@@ -5,6 +5,10 @@
 on damage:
   if victim is not a player:
     if uncolored display name of victim does not contain "-":
+      set {_fullname::*} to uncolored display name of victim split at " &e"
+      set {_name} to {_fullname::1}
+      set {_hp} to ciel(health of victim)
+      set display name of victim to "%{_name}% &e%{_hp}%"
       if {dmgd::%victim's uuid%} is not set:
         set {dmgd::%victim's uuid%} to 1
         set {_r} to random integer between 0 and 99999
@@ -84,15 +88,15 @@ function spawnReturn(loc: location):
       wait ("%random integer between 1 and 8% seconds" parsed as timespan)
 
       if {type::%{_loc}%} = "undeadtwig":
-        spawnEntity(adult zombie, {_loc}, "&fUndead Twig &60", 8)
+        spawnEntity(adult zombie, {_loc}, "&fUndead Twig &e8", 8)
         equipEntity(last spawned zombie, air, button, air, air, leather boots dyed green)
 
       if {type::%{_loc}%} = "undeadbranch":
-        spawnEntity(adult zombie, {_loc}, "&fUndead Branch &61", 15)
+        spawnEntity(adult zombie, {_loc}, "&fUndead Branch &e15", 15)
         equipEntity(last spawned zombie, stick, button, air, leather leggings dyed green, leather boots dyed green)
 
       if {type::%{_loc}%} = "rattler":
-        spawnEntity(skeleton, {_loc}, "&fRattler &63", 25)
+        spawnEntity(skeleton, {_loc}, "&fRattler &e25", 25)
         equipEntity(last spawned skeleton, bone)
 
 function spawnMockReturn(loc: location) :: text:
