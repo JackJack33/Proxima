@@ -2,7 +2,14 @@ on right click on dropper:
   cancel event
   if "%region at player%" contains "skeleton":
     if player has bone named "&eBone Key"
+    play sound "block.anvil.place" at volume 1 and pitch 1 at location of event-block
+    wait 1 second
     set {_doorloc::*} to location of all blocks in radius 3 of event-block
     set {_door::*} to {_doorloc::*} where [block at input = oak planks]
     set block at {_door::*} to air
-    
+    play sound "block.wood.break" at volume 1 and pitch 1 at event-block
+    drawDot count 20, particle "blockcrack", material oak planks, speed 0.2, XYZ 1, 1, 1, center event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
+    wait 5 seconds
+    set block at {_door::*} to oak planks
+    drawDot count 20, particle "smoke", speed 0.02, XYZ 0.3, 0.3, 0.3, center event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
+    play sound "block.wood.place" at volume 1 and pitch 1 at event-block
