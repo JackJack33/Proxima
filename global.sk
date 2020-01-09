@@ -53,12 +53,73 @@ on damage:
 on death:
   if victim is player:
     if attacker is set:
-      if uncolored name of attacker is "Guard":
+      if uncolored name of attacker contains "Guard":
         broadcast "&7%victim% &7annoyed the guards"
       else:
-        broadcast "&7%victim% &7was slain by &7%uncolored name of attacker%"
+        chance of 20%:
+          broadcast "&7%victim% &7was slain by &7%uncolored name of attacker%"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7was gored by &7%uncolored name of attacker%"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7was disemboweled by &7%uncolored name of attacker%"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7was maimed by &7%uncolored name of attacker%"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7was stabbed by &7%uncolored name of attacker%"
+    
     else:
-      broadcast "&7%victim% &7was slain"
+      if cause of death is drowning:
+        chance of 20%:
+          broadcast "&7%victim% &7ran out of air"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7is sleeping with the fish"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7ate water"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7got waterboarded"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7didn't know how to swim"
+          
+      else if cause of death is burning:
+        chance of 20%:
+          broadcast "&7%victim% &7was melted"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7was cooked very very very very well done"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7got charboiled"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7took the marshmallow experience"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7was thought to be a witch"
+          
+      else:
+        chance of 20%:
+          broadcast "&7%victim% &7died from... something?"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7got killed by stuff"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7died because yes"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7kicked the bucket due to an unknown cause"
+          
+        chance of 20%:
+          broadcast "&7%victim% &7blew up! Well, not really. Something else."
+
     set {_r} to random integer between 10 and 18
     set {_r} to 0.01 * {_r}
     set {_cd} to floor({_r}*{coins::%victim's uuid%})
