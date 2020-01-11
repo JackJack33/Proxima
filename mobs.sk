@@ -5,10 +5,6 @@
 on damage:
   if victim is not a player:
     if uncolored display name of victim does not contain "-":
-      set {_fullname::*} to uncolored display name of victim split at " &e"
-      set {_name} to {_fullname::1}
-      set {_hp} to ciel(health of victim)
-      set display name of victim to "%{_name}% &e%{_hp}%"
       if {dmgd::%victim's uuid%} is not set:
         set {dmgd::%victim's uuid%} to 1
         set {_r} to random integer between 0 and 99999
@@ -29,17 +25,21 @@ on damage:
 # Spawner Commands
 #
 
-command /addspawner <text>:
+command /addspawner <text> <number> <integer>:
+  usage: /addspawner <type> <range> <max>
   permission: op
   trigger:
     set {_loc} to location of block at location of player
     add {_loc} to {spawners::*}
     set {type::%{_loc}%} to arg-1
+    set {range::%{_loc}%} to arg-2
+    set {max::%{_loc}%} to arg-3
     send "&f{spawners::%size of {spawners::*} - 1%&f} &7set to &f%{_loc}%&7!"
     send "&f{type::%{_loc}%&f} &7set to &f%arg-1%&7!"
     send "&7Spawner has an id of &f%size of {spawners::*}%"
 
 command /removespawner <integer>:
+  usage: /removespawner <id>
   permission: op
   trigger:
     if {spawners::%arg-1%} is set:
@@ -47,6 +47,8 @@ command /removespawner <integer>:
       send "&7Had type of &f%{type::%{spawners::%arg-1%}%}%"
       send "&7Had location of &f%{spawners::%arg-1%}%"
       delete {type::%{spawners::%arg-1%}%}
+      delete {range::%{spawners::%arg-1%}%}
+      delete {max::%{spawners::%arg-1%}%}
       delete {spawners::%arg-1%}
     else:
       send "&7Spawner with that ID does not exist!"
@@ -62,7 +64,8 @@ command /showspawners:
       set {_z} to floor(z-coordinate of loop-value)
       set line 1 of block at loop-value to "ID: %loop-index%"
       set line 2 of block at loop-value to "%{_x}%, %{_y}%, %{_z}%"
-      set line 3 of block at loop-value to "%{type::%loop-value%}%"
+      set line 3 of block at loop-value to "R: %{range::%loop-value%}%, M: %{max::%loop-value%}%"
+      set line 4 of block at loop-value to "%{type::%loop-value%}%"
 
 command /unshowspawners:
   aliases: /uss
@@ -83,20 +86,20 @@ every 8 seconds in world "ul_prox":
 #
 
 function spawnReturn(loc: location):
-  if size of all players in radius 15 around {_loc} >= 1:
-    if size of all monsters in radius 30 around {_loc} <= 8:
+  if size of all players in radius {range::%{_loc}%} around {_loc} >= 1:
+    if size of all monsters in radius 30 around {_loc} <= {max::%{_loc}%}:
       wait ("%random integer between 1 and 8% seconds" parsed as timespan)
 
       if {type::%{_loc}%} = "undeadtwig":
-        spawnEntity(adult zombie, {_loc}, "&fUndead Twig &e8", 8)
+        spawnEntity(adult zombie, {_loc}, "&fUndead Twig &60", 8)
         equipEntity(last spawned zombie, air, button, air, air, leather boots dyed green)
 
       if {type::%{_loc}%} = "undeadbranch":
-        spawnEntity(adult zombie, {_loc}, "&fUndead Branch &e15", 15)
+        spawnEntity(adult zombie, {_loc}, "&fUndead Branch &61", 15)
         equipEntity(last spawned zombie, stick, button, air, leather leggings dyed green, leather boots dyed green)
 
       if {type::%{_loc}%} = "rattler":
-        spawnEntity(skeleton, {_loc}, "&fRattler &e25", 25)
+        spawnEntity(skeleton, {_loc}, "&fRattler &63", 25)
         equipEntity(last spawned skeleton, bone)
 
 function spawnMockReturn(loc: location) :: text:
