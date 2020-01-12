@@ -1,0 +1,52 @@
+#
+# Spawner Commands
+#
+
+command /addspawner <text> <number> <integer>:
+  usage: /addspawner <type> <range> <max>
+  permission: op
+  trigger:
+    set {_loc} to location of block at location of player
+    add {_loc} to {spawners::*}
+    set {type::%{_loc}%} to arg-1
+    set {range::%{_loc}%} to arg-2
+    set {max::%{_loc}%} to arg-3
+    send "&f{spawners::%size of {spawners::*} - 1%&f} &7set to &f%{_loc}%&7!"
+    send "&f{type::%{_loc}%&f} &7set to &f%arg-1%&7!"
+    send "&7Spawner has an id of &f%size of {spawners::*}%"
+
+command /removespawner <integer>:
+  usage: /removespawner <id>
+  permission: op
+  trigger:
+    if {spawners::%arg-1%} is set:
+      send "&7Removed spawner with id &f%arg-1%"
+      send "&7Had type of &f%{type::%{spawners::%arg-1%}%}%"
+      send "&7Had location of &f%{spawners::%arg-1%}%"
+      delete {type::%{spawners::%arg-1%}%}
+      delete {range::%{spawners::%arg-1%}%}
+      delete {max::%{spawners::%arg-1%}%}
+      delete {spawners::%arg-1%}
+    else:
+      send "&7Spawner with that ID does not exist!"
+
+command /showspawners:
+  aliases: /ss
+  permission: op
+  trigger:
+    loop {spawners::*}:
+      set block at loop-value to oak floor sign
+      set {_x} to floor(x-coordinate of loop-value)
+      set {_y} to floor(y-coordinate of loop-value)
+      set {_z} to floor(z-coordinate of loop-value)
+      set line 1 of block at loop-value to "ID: %loop-index%"
+      set line 2 of block at loop-value to "%{_x}%, %{_y}%, %{_z}%"
+      set line 3 of block at loop-value to "R: %{range::%loop-value%}%, M: %{max::%loop-value%}%"
+      set line 4 of block at loop-value to "%{type::%loop-value%}%"
+
+command /unshowspawners:
+  aliases: /uss
+  permission: op
+  trigger:
+    loop {spawners::*}:
+      set block at loop-value to air

@@ -42,6 +42,30 @@ on join:
 #
 
 on damage:
+  if victim is not a player:
+    if uncolored display name of victim does not contain "-":
+      if {dmgd::%victim's uuid%} is not set:
+        set {dmgd::%victim's uuid%} to 1
+        set {_r} to random integer between 0 and 99999
+        set {_loc} to location of victim
+        add (random number between 1.5 and 2.5) to y-coordinate of {_loc}
+        add (random number between -0.8 and 0.8) to x-coordinate of {_loc}
+        add (random number between -0.8 and 0.8) to z-coordinate of {_loc}
+        if attacker is set:
+          create holo object "&c-%final damage%" with id "%attacker%.%{_r}%" at {_loc}
+        else:
+          create holo object "&c-%damage%" with id "%attacker%.%{_r}%" at {_loc}
+        wait 1 tick
+        if victim is not a villager:
+          set {_hp} to health of victim
+          set {_fullname::*} to display name of victim split at " &6"
+          set {_name} to {_fullname::1}
+          set display name of victim to "%{_name}% &6%{_hp}%"
+        delete {dmgd::%victim's uuid%}
+        wait 19 ticks
+        delete holo object "%attacker%.%{_r}%"
+
+on damage:
   if victim is monster:
     if damage cause is burn:
       cancel event
@@ -98,8 +122,10 @@ on craft:
 on chat:
   if player is op:
     set chat format to "&c[A] &7%player%&f: %message%"
+  else if {betatesters::*} contains player:
+    set chat format to "&3[B] &7%player%&f: %message%"
   else:
-    set chat format to "&7%player%&f: %message%"
+    set chat format to "&7%player%&f: &f%message%"
 
 on walk on gold block:
   if {checkpoint::%player's uuid%} != location of block above event-block:
@@ -109,6 +135,12 @@ on walk on gold block:
 #
 # Operator Commands
 #
+
+command /beta <offlineplayer>:
+  permission: op
+  trigger:
+    if "%player%" contains "JackJack33":
+      add arg-1 to {betatesters::*}
 
 command /time:
   permission: op

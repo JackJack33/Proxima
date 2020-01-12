@@ -66,4 +66,14 @@ on death:
         drop 1 stick named "&fTwig" lored "&7Material" at victim
       chance of 20%:
         drop 1 stick named "&fTwig" lored "&7Material" at victim
+    if {_n} contains "Rattler":
+      drop {_r1} of gold nuggets at victim
+      chance of 40%:
+        drop 1 bone named "&fBone" lored "&7Material" at victim
+    if {_n} contains "Acolyte":
+      drop {_r2} of gold nuggets at victim
+      chance of 10%:
+        drop {_r3} of gold nuggets at victim
+
+
 

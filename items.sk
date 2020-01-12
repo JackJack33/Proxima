@@ -40,6 +40,7 @@ on right click:
     if spellCheck(player, 10) = 1:
       stopEffect id "%player%"
       set {_loc} to location of block at player
+      play sound "entity.blaze.shoot" at volume 1 and pitch 0.5 at location of player
       drawSphere style 1, particle "smoke", center {_loc}, id "%player%", rM false, radius 3, density 25, visibleRange 32, disXYZ 0, 0, 0, pulseDelay 1
       loop 8 times:
         set {_t::*} to (all entities) where [sphereCheck(input, {_loc}, 3.5, 1) = ""]
@@ -51,9 +52,18 @@ on right click:
     if spellCheck(player, 10) = 1:
       set {_l} to location 2 above player
       set {_loc} to lineCheck(player, 4.5)
+      play sound "entity.blaze.shoot" at volume 1 and pitch 2 at location of player
       drawLine particle redstone, RGB 255, 51, 204, center {_l}, target {_loc}, id "%player%", solid true, density 10, visibleRange 32
       wait 1 tick
       stopEffect id "%player%"
+      endCheck(player)
+
+  if {_n} is "Wrath of the Departed":
+    if spellCheck(player, 15) = 1:
+      play sound "item.totem.use" at volume 1 and pitch 2 at location of player
+      drawDot count 100, particle "fireworkspark", speed 1, XYZ 0.3, 0.3, 0.3, center location of player, visibleRange 32, pulseDelay 0, keepFor 1 tick
+      set {_t::*} to (all entities) where [sphereCheck(input, location of block at location of player, 3.5, 12) = ""]
+      wait 1 tick
       endCheck(player)
 
 #
@@ -113,4 +123,5 @@ function lineCheck(p: player, d: number) :: location:
       set {_r} to location 1 above target block of {_p}
   else:
     set {_r} to location 1 above target block of {_p}
+  return {_r}ion 1 above target block of {_p}
   return {_r}

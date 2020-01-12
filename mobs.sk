@@ -1,80 +1,4 @@
 #
-# Events
-#
-
-on damage:
-  if victim is not a player:
-    if uncolored display name of victim does not contain "-":
-      if {dmgd::%victim's uuid%} is not set:
-        set {dmgd::%victim's uuid%} to 1
-        set {_r} to random integer between 0 and 99999
-        set {_loc} to location of victim
-        add (random number between 1.5 and 2.5) to y-coordinate of {_loc}
-        add (random number between -0.8 and 0.8) to x-coordinate of {_loc}
-        add (random number between -0.8 and 0.8) to z-coordinate of {_loc}
-        if attacker is set:
-          create holo object "&c-%final damage%" with id "%attacker%.%{_r}%" at {_loc}
-        else:
-          create holo object "&c-%damage%" with id "%attacker%.%{_r}%" at {_loc}
-        wait 1 tick
-        delete {dmgd::%victim's uuid%}
-        wait 19 ticks
-        delete holo object "%attacker%.%{_r}%"
-
-#
-# Spawner Commands
-#
-
-command /addspawner <text> <number> <integer>:
-  usage: /addspawner <type> <range> <max>
-  permission: op
-  trigger:
-    set {_loc} to location of block at location of player
-    add {_loc} to {spawners::*}
-    set {type::%{_loc}%} to arg-1
-    set {range::%{_loc}%} to arg-2
-    set {max::%{_loc}%} to arg-3
-    send "&f{spawners::%size of {spawners::*} - 1%&f} &7set to &f%{_loc}%&7!"
-    send "&f{type::%{_loc}%&f} &7set to &f%arg-1%&7!"
-    send "&7Spawner has an id of &f%size of {spawners::*}%"
-
-command /removespawner <integer>:
-  usage: /removespawner <id>
-  permission: op
-  trigger:
-    if {spawners::%arg-1%} is set:
-      send "&7Removed spawner with id &f%arg-1%"
-      send "&7Had type of &f%{type::%{spawners::%arg-1%}%}%"
-      send "&7Had location of &f%{spawners::%arg-1%}%"
-      delete {type::%{spawners::%arg-1%}%}
-      delete {range::%{spawners::%arg-1%}%}
-      delete {max::%{spawners::%arg-1%}%}
-      delete {spawners::%arg-1%}
-    else:
-      send "&7Spawner with that ID does not exist!"
-
-command /showspawners:
-  aliases: /ss
-  permission: op
-  trigger:
-    loop {spawners::*}:
-      set block at loop-value to oak floor sign
-      set {_x} to floor(x-coordinate of loop-value)
-      set {_y} to floor(y-coordinate of loop-value)
-      set {_z} to floor(z-coordinate of loop-value)
-      set line 1 of block at loop-value to "ID: %loop-index%"
-      set line 2 of block at loop-value to "%{_x}%, %{_y}%, %{_z}%"
-      set line 3 of block at loop-value to "R: %{range::%loop-value%}%, M: %{max::%loop-value%}%"
-      set line 4 of block at loop-value to "%{type::%loop-value%}%"
-
-command /unshowspawners:
-  aliases: /uss
-  permission: op
-  trigger:
-    loop {spawners::*}:
-      set block at loop-value to air
-
-#
 # Timer
 #
 
@@ -82,25 +6,60 @@ every 8 seconds in world "ul_prox":
   set {_t::*} to {spawners::*} where [spawnMockReturn(input) = ""]
 
 #
-# Functions
+# Spawning
 #
+
+command /spawnmob <text>:
+  permission: op
+  trigger:
+    spawn skeleton at location of player
+    set last spawned skeleton's display name to arg-1
 
 function spawnReturn(loc: location):
   if size of all players in radius {range::%{_loc}%} around {_loc} >= 1:
-    if size of all monsters in radius 30 around {_loc} <= {max::%{_loc}%}:
+    if size of all monsters in radius 30 around {_loc} < {max::%{_loc}%}:
       wait ("%random integer between 1 and 8% seconds" parsed as timespan)
 
       if {type::%{_loc}%} = "undeadtwig":
-        spawnEntity(adult zombie, {_loc}, "&fUndead Twig &60", 8)
+        spawnEntity(adult zombie, {_loc}, "&fUndead Twig", 8)
         equipEntity(last spawned zombie, air, button, air, air, leather boots dyed green)
 
       if {type::%{_loc}%} = "undeadbranch":
-        spawnEntity(adult zombie, {_loc}, "&fUndead Branch &61", 15)
+        spawnEntity(adult zombie, {_loc}, "&fUndead Branch", 15)
         equipEntity(last spawned zombie, stick, button, air, leather leggings dyed green, leather boots dyed green)
 
       if {type::%{_loc}%} = "rattler":
-        spawnEntity(skeleton, {_loc}, "&fRattler &63", 25)
+        spawnEntity(skeleton, {_loc}, "&fRattler", 25)
         equipEntity(last spawned skeleton, bone)
+      
+      if {type::%{_loc}%} = "acolyte":
+        spawnEntity(skeleton, {_loc}, "&fAcolyte", 20)
+        equipEntity(last spawned skeleton, bone of efficiency 1)
+
+#
+# Abilities
+#
+
+on spawn:
+  wait 1 ticks
+  set {_n} to uncolored name of event-entity
+  set {_u} to uuid of event-entity
+  if event-entity is a skeleton:
+    if {_n} contains "Acolyte":
+      while event-entity is alive:
+        if event-entity's target is set:
+          play sound "entity.blaze.shoot" at volume 1 and pitch 2 at location of event-entity
+          drawLine particle redstone, RGB 255, 0, 255, center location of block 1 above event-entity, target location 1.5 above event-entity's target, id "%{_u}%.ability", solid true, density 10, visibleRange 32
+          set {_r} to random number between 1.0 and 3.5
+          damage event-entity's target by {_r}
+        wait 2 ticks
+        stopEffect id "%{_u}%.ability"
+        wait 5 seconds
+
+
+#
+# Functions
+#
 
 function spawnMockReturn(loc: location) :: text:
   spawnReturn({_loc})
@@ -110,7 +69,7 @@ function spawnMockReturn(loc: location) :: text:
 function spawnEntity(x: entitytype, loc: location, n: text, h: number):
   spawn {_x} at {_loc}
   set {_e} to last spawned entity
-  set displayname of last spawned entity to {_n}
+  set displayname of last spawned entity to "%{_n}% &6%{_h}%"
   set {_e}'s max health to {_h}
   set {_e}'s health to {_h}
 
