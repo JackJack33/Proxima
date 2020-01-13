@@ -7,7 +7,8 @@ if you do so.
 (example: add a hologram line somewhere that credits me (JackJack33))
 
 When I finish skripting Proxima, I'll release all of these skripts as finalized versions for
-anyone to use. I will also probably create a compact version as a single .sk file.
+anyone to use. I will also probably create a compact version as a single .sk file. Along with this I will
+create a sort of documentation on how to use the skripts to create your own rpg.
 
 Feel free to make any pull requests and help me bugfix, or just yell at me for my
 terrible skripting.
