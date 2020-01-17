@@ -1,0 +1,105 @@
+on right click on stone button:
+  cancel event
+  if block below event-block is iron block:
+    if "%region at player%" contains "skeletondungeon":
+      set {_loc} to location of event-block
+      set block at {_loc} to air
+      set {boss::skeleton::active} to 1
+      set {_loc2} to location(-75.5, 72.5, 72.5, world("ul_prox"))
+      spawnEntity(skeleton, {_loc2}, "&fThe Bone King", 250)
+      equipEntity(last spawned skeleton, gold sword of sharpness 1, button, gold chestplate, air, air)
+
+#
+# The Bone King
+#
+
+
+on damage:
+  if uncolored name of victim contains "The Bone King":
+    if {bonepoints.total} > 0:
+      cancel event
+      send "&7Destroy the wool blocks!" to attacker
+
+on death:
+  set {_pc} to 0
+  if victim is a player:
+    if "%region at victim%" contains "skeletonboss":
+      loop all players:
+        if "%region at loop-player%" contains "skeletonboss":
+          add 1 to {_pc}
+      if {_pc} < 2:
+        kill all skeletons where [killMob(input, "The Bone King") = ""]
+        send "&7You we're the last one alive, so the boss ran away while you died!" to victim
+  if uncolored name of victim contains "The Bone King":
+    if {_pc} > 1:
+      set {_nbt} to nbt of {items::21}
+      set {_t} to name of {items::21}
+      set {_l} to lore of {items::21}
+      drop 1 shears with nbt "%{_nbt}%" named {_t} lored {_l} at location of victim
+      set {_r} to random integer between 10 and 15
+      drop {_r} of gold nugget at location of victim
+    set block at {bonereset} to floor stone button
+      
+function killMob(e: entity, n: text) :: text:
+  set {_ne} to uncolored name of {_e}
+  if {_ne} contains {_n}:
+    delete {_e}
+  return ""
+  
+
+on spawn:
+  wait 1 ticks
+  set {_n} to uncolored name of event-entity
+  set {_u} to uuid of event-entity
+  if event-entity is a skeleton:
+    if {_n} contains "The Bone King":
+      while event-entity is alive:
+        if event-entity's target is set:
+          set {_r} to random integer between 1 and 5
+          if {_r} = 1:
+            loop 3 times:
+              play sound "entity.blaze.shoot" at volume 1 and pitch 2 at location of event-entity
+              drawLine particle redstone, RGB 255, 255, 0, center location of block 1 above event-entity, target location 1.5 above event-entity's target, id "%{_u}%.ability", solid true, density 10, visibleRange 32
+              wait 1 tick
+              stopEffect id "%{_u}%.ability"
+              damage event-entity's target by 0.3
+              wait 9 ticks
+
+          if {_r} = 2:
+            if size of all entities in radius 20 around location of event-entity < 10:
+              loop 3 times:
+                spawnEntity(skeleton, location of event-entity, "&fRattler", 10)
+                equipEntity(last spawned skeleton, bone)
+
+          if {_r} = 3:
+            loop 10 times:
+              set {_loc} to location of block 1 above event-entity
+              play sound "entity.blaze.shoot" at volume 1 and pitch 0.5 at {_loc}
+              drawSphere style 2, particle "redstone", RGB 255, 140, 26, center {_loc}, id "tbk.spell", rM false, radius 4.5, density 25, visibleRange 32, disXYZ 0, 0, 0, pulseDelay 1
+              ignite all players in radius 3 around {_loc}
+              wait 1 second
+              stopEffect id "tbk.spell"
+
+          if {_r} = 4:
+            if size of all entities in radius 20 around location of event-entity < 10:
+              spawnEntity(skeleton, {_loc}, "&fAcolyte", 25)
+              equipEntity(last spawned skeleton, bone of efficiency 1)
+
+          if {_r} = 5:
+            loop {bonepoints::*}:
+              set block at loop-value to yellow wool
+              set block 1 above loop-value to floor stone button
+              set {bonepoints.total} to 4
+            wait 10 seconds
+
+
+        wait 8 seconds
+
+on right click on stone button:
+  cancel event
+  set {_loc} to location of event-block
+  if "%block under {_loc}%" contains "yellow wool":
+    set event-block to air
+    set block below event-block to air
+    play sound "entity.blaze.hurt" at volume 1 and pitch 1 at location of event-entity
+    remove 1 from {bonepoints.total}
