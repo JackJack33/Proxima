@@ -1,3 +1,4 @@
+
 #
 # Events
 #
@@ -53,6 +54,24 @@ on right click on entity:
 
     else if {_name} = "Merchant":
       openGui(player, {_name}, 2)
+      set {_n} to size of {shop::merchant::items::*}	
+      loop {_n} times:	
+        set {_i} to {items::%{shop::merchant::items::%loop-number%}%}	
+        set {_i2} to {items::%{shop::merchant::items::%loop-number%}%}	
+        set {_l} to lore of {_i}	
+        set {_p} to {shop::merchant::sellprice::%loop-number%}	
+        set {_ip} to {shop::merchant::itemprice::%loop-number%}	
+        set lore of {_i} to "%{_l}%|| ||&6Sell Amount: %{_ip}%||&6Sell Price: %{_p}% &6coins"	
+        broadcast {_i}	
+        format gui slot loop-number - 1 of player with {_i} to run:
+          set {_am} to amount of {_i2} in player's inventory
+          if {_am} >= {_ip}:
+            play sound "item.armor.equip_chain" at volume 1 and pitch 1.5 at location of player
+            remove {_ip} of {_i2} lored lore of {_i2} from player's inventory	
+            add {_p} to {coins::%player's uuid%}	
+          else:
+            play sound "entity.villager.trade" at volume 1 and pitch 1 at location of player
+            send "&7Insufficient items! (%{_am}%&7/%{_ip}%&7)"
      
 
 on inventory close:
