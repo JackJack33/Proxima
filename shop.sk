@@ -8,71 +8,52 @@ on right click on entity:
     set {_name} to uncolored name of citizen {_id}
     if {_name} != "Guard", "Innkeeper" or "Merchant":
       openGui(player, {_name}, 2)
-      set {_n} to size of {shop.%{_id}%::*}
-      loop {_n} times:
-        set {_i} to {items::%{shop.%{_id}%::%loop-number%}%}
-        set {_i2} to {items::%{shop.%{_id}%::%loop-number%}%}
-        set {_l1} to lore of {_i}
-        set {_p} to {shop.%{_id}%.price::%loop-number%}
-        if size of {shop.%{_id}%.special::*} > 0:
-          set {_hsp} to 1
-          set {_count} to 0
-          loop {shop.%{_id}%.special::*}:
-            if {shop.%{_id}%.specialtype::%loop-value-1%} is set:
-              set {_sp::%{_count}%} to {shop.%{_id}%.specialprice::%loop-value-1%}
-              set {_si::%{_count}%} to {items::%{shop.%{_id}%.specialtype::%loop-value-1%}%}
-              set {_l2} to "&aSpecial %{_count + 1}%&a: %{shop.%{_id}%.specialprice::%loop-value-1%}% &aof %display name of {_si::%{_count}%}%"
-              add 1 to {_count}
-          set lore of {_i} to "%{_l1}%|| ||&6Price: %{_p}% &6coins||%{_l2}%"
+      loop (size of {shop::%{_id}%::items::*}) times:
+        set {_i} to {items::%{shop::%{_id}%::items::%loop-number%}%}
+        set {_l} to lore of {_i}
+        set {_p} to {shop::%{_id}%::price::%loop-number%}
+        set {_pt} to "&6Price: %{_p}% &6coins"
+        set {_hs} to size of {special::%{_id}%::%loop-number%::id::*}
+        if {_hs} > 0:
+          set {_s.id::*} to {special::%{_id}%::%loop-number%::id::*}
+          set {_s.amount::*} to {special::%{_id}%::%loop-number%::amount::*}
+          loop {_hs} times:
+            set {_si::*} to uncolored "%{items::%{_s.id::%loop-number-2%}%}%" split at "named "
+            set {_li} to {_si::2}
+            if {_r} is not set:
+              set {_r} to "&aSpecial %loop-number-2%&a: %{_s.amount::%loop-number-2%}% &aof %{_li}%"
+            else:
+              set {_r} to "%{_r}%||&aSpecial %loop-number-2%&a: %{_s.amount::%loop-number-2%}% &aof %{_li}%"
         else:
-          set lore of {_i} to "%{_l1}%|| ||&6Price: %{_p}% &6coins"
-        format gui slot loop-number - 1 of player with {_i} to run:
-          if {coins::%player's uuid%} >= {_p}:
-            if {_hsp} = 1:
-              set {_lsp} to size of {_shop.%{_id}%.special::*}
-              loop {_lsp} times:
-                set {_si} to {_si::%loop-number-2%}
-                set {_sp} to {_sp::%loop-number-2%}
-                if amount of {_si} in player's inventory >= {_sp}:
-                  remove {_sp} of {_si} lored lore of {_si} from player's inventory
-                  send "&7- %{_sp}% &7%display name of {_si}%"
-                  remove {_p} from {coins::%player's uuid%}
-                  send "&7- %{_p}% &7Coins"
-                  give player {_i2}
-                else:
-                  send "&7Not enough of %display name of {_si}%&7!"
-            if {_hsp} is not set:
-              remove {_p} from {coins::%player's uuid%}
-              send "&7- %{_p}% &7Coins"
-              give player {_i2}
+          set {_r} to ""
+        format gui slot loop-number - 1 of player with {_i} lored "%{_l}%|| ||%{_pt}%||%{_r}%" to run:
+          if {coins::%player's uuid%} < {_p}:
+            send "&7Insufficient funds! (%{coins::%player's uuid%}%&7/%{_p}%&7)"
+            play sound "entity.villager.trade" at volume 1 and pitch 1 at location of player
           else:
-            send "&7Not enough funds! (%{coins::%player's uuid%}%&7/%{_p}%&7)"
-      loop 18 - {_n} times:
-        format gui slot loop-number + {_n} - 1 of player with air
-      if {shopopen::%player's uuid%} is not set:
-        set {shopopen::%player's uuid%} to 1
+            loop {_hs} times:
+              set {_ri} to {items::%{_s.id::%loop-number-2%}%}
+              set {_ra} to {_s.amount::%loop-number-2%}
+              set {_am} to amount of {_ri} in player's inventory
+              if {_am} < {_ra}:
+                send "&7Insufficient items! (%{_am}%&7/%{_ra}%&7 of %{_li}%&7)"
+                play sound "entity.villager.trade" at volume 1 and pitch 1 at location of player
+              else:
+                add 1 to {_rt}
+            if {_rt} = {_hs}:
+              delete {_rt}
+              play sound "item.armor.equip_chain" at volume 1 and pitch 1.5 at location of player
+              remove {_p} from {coins::%player's uuid%}
+              remove {_ra} of {_ri} from player's inventory
+              give player {_i}
+
 
     else if {_name} = "Innkeeper":
       innkeeper(player)
 
     else if {_name} = "Merchant":
       openGui(player, {_name}, 2)
-      set {_n} to size of {shop.merchant::*}
-      loop {_n} times:
-        set {_i} to {items::%{shop.merchant::%loop-number%}%}
-        set {_i2} to {items::%{shop.merchant::%loop-number%}%}
-        set {_l} to lore of {_i}
-        set {_p} to {shop.merchant.price::%loop-number%}
-        set {_ip} to {shop.merchant.itemprice::%loop-number%}
-        set lore of {_i} to "%{_l}%|| ||&6Sell Amount: %{_ip}%||&6Sell Price: %{_p}% &6coins"
-        broadcast {_i}
-        format gui slot loop-number - 1 of player with {_i} to run:
-          if amount of {_i2} in player's inventory >= {_ip}:
-            remove {_ip} of {_i2} lored lore of {_i2} from player's inventory
-            send "&7- %{_ip}% &7%display name of {_i}%"
-            add {_p} to {coins::%player's uuid%}
-          else:
-            send "&7Not enough of %display name of {_i}%&7!"
+     
 
 on inventory close:
   if {shopopen::%player's uuid%} = 1:
@@ -86,65 +67,92 @@ on inventory click:
 # Shop Editor Commands
 #
 
-command /addmerchant <integer>:
-  usage: /addmerchant <item gui id>
-  permission: op
-  trigger:
-    add arg-1 to {shop.merchant::*}
-    send "&7Added item with id &f%arg-1% &7to merchant!"
+# {shop::name/id::items/price::*}
 
-command /removemerchant <integer>:
-  aliases: /delmerchant
-  usage: /removesop <item placement>
-  permission: op
-  trigger:
-    delete {shop.merchant::%arg-1%}
-    send "&7Removed item in slot &f%arg-1% &7of merchant!"
+# {special::id::placement::num::*}
 
-command /setmerchantsellprice <integer> <integer>:
-  aliases: /smpsell
-  usage: /setmerchantsellprice <item placement> <price>
-  permission: op
-  trigger:
-    set {shop.merchant.price::%arg-1%} to arg-2
-    send "&7Set sell price of item &f%arg-1% &7at merchant &7to &6%arg-2%&7!"
+#
+# General Shops
+#
 
-command /setmerchantitemprice <integer> <integer>:
-  aliases: /smpitem
-  usage: /setmerchantitemprice <item placement> <price>
+command /shopadd <integer> <integer>:
+  usage: /shopadd <citizen id> <item gui id>
   permission: op
   trigger:
-    set {shop.merchant.itemprice::%arg-1%} to arg-2
-    send "&7Set item price of item &f%arg-1% &7at merchant &7to &6%arg-2%&7!"
-
-command /addshop <integer> <integer>:
-  usage: /addshop <citizen id> <item gui id>
-  permission: op
-  trigger:
-    add arg-2 to {shop.%arg-1%::*}
+    add arg-2 to {shop::%arg-1%::items::*}
     send "&7Added item with id &f%arg-2% &7to shop with id &f%arg-1%&7!"
 
-command /removeshop <integer> <integer>:
-  aliases: /delshop
-  usage: /removesop <citizen id> <item placement>
+command /shopdel <integer> <integer>:
+  usage: /shopdel <citizen id> <item placement>
   permission: op
   trigger:
-    delete {shop.%arg-1%::%arg-2%}
+    delete {shop::%arg-1%::items::%arg-2%}
     send "&7Removed item in slot &f%arg-2% &7of shop &f%arg-1%&7!"
-    
 
-command /setprice <integer> <integer> <integer>:
-  usage: /setprice <citizen id> <item placement> <price>
+command /shopsetprice <integer> <integer> <integer>:
+  usage: /shopsetprice <citizen id> <item placement> <price>
   permission: op
   trigger:
-    set {shop.%arg-1%.price::%arg-2%} to arg-3
+    set {shop::%arg-1%::price::%arg-2%} to arg-3
     send "&7Set price of item &f%arg-2% &7at shop &f%arg-1% &7to &6%arg-3%&7!"
 
-command /setspecial <integer> <integer> <integer> <integer> <integer>:
-  usage: /setspecial <citizen id> <item placement> <special num> <special id> <special amount>
+command /shoppurge <integer>:
+  usage: /shoppurge <citizen id>
   permission: op
   trigger:
-    set {shop.%arg-1%.specialtype::%arg-2%} to arg-4
-    set {shop.%arg-1%.specialprice::%arg-2%} to arg-5
-    set {shop.%arg-1%.special::%arg-3%} to arg-4
+    set {_s} to size of {shop::%arg-1%::items::*}
+    delete {shop::%arg-1%::items::*}
+    loop {_s} times:
+      delete {special::%arg-1%::%loop-number%::*}
+    send "&7Completely purged shop &f%arg-1%&7!"
+
+#
+# Special Shops
+#
+    
+command /specialdel <integer> <integer>:
+  usage: /specialdel <citizen id> <item placement>
+  permission: op
+  trigger:
+    delete {special::%arg-1%::%arg-2%::*}
+    send "&7Deleted special properties for item &f%arg-2% &7in shop &f%arg-1%&7!"
+
+command /specialset <integer> <integer> <integer> <integer> <integer>:
+  usage: /specialset <citizen id> <item placement> <special num> <special id> <special amount>
+  permission: op
+  trigger:
+    set {special::%arg-1%::%arg-2%::id::%arg-3%} to arg-4
+    set {special::%arg-1%::%arg-2%::amount::%arg-3%} to arg-5
     send "&7Set special price of item &f%arg-2% &7at shop &f%arg-1% &7to &f%arg-5% &7of item at &6%arg-4%&7!"
+
+#
+# Merchant Shops
+#
+
+command /merchantadd <integer>:
+  usage: /merchantadd <item id>
+  permission: op
+  trigger:
+    add arg-1 to {shop::merchant::items::*}
+    send "&7Added item with id &f%arg-1% &7to merchant!"
+
+command /merchantdel <integer>:
+  usage: /merchantdel <item placement>
+  permission: op
+  trigger:
+    delete {shop::merchant::items::%arg-1%}
+    send "&7Removed item in slot &f%arg-1% &7of merchant!"
+
+command /merchantsetsell <integer> <integer>:
+  usage: /merchantsetsell <item placement> <price>
+  permission: op
+  trigger:
+    set {shop::merchant::sellprice::%arg-1%} to arg-2
+    send "&7Set sell price of item &f%arg-1% &7at merchant &7to &6%arg-2%&7!"
+
+command /merchantsetprice <integer> <integer>:
+  usage: /merchantsetprice <item placement> <price>
+  permission: op
+  trigger:
+    set {shop::merchant::itemprice::%arg-1%} to arg-2
+    send "&7Set item price of item &f%arg-1% &7at merchant &7to &6%arg-2%&7!"
