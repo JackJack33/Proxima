@@ -1,4 +1,3 @@
-
 #
 # Events
 #
@@ -32,22 +31,28 @@ on right click on entity:
             send "&7Insufficient funds! (%{coins::%player's uuid%}%&7/%{_p}%&7)"
             play sound "entity.villager.trade" at volume 1 and pitch 1 at location of player
           else:
-            loop {_hs} times:
-              set {_ri} to {items::%{_s.id::%loop-number-2%}%}
-              set {_ra} to {_s.amount::%loop-number-2%}
-              set {_am} to amount of {_ri} in player's inventory
-              if {_am} < {_ra}:
-                send "&7Insufficient items! (%{_am}%&7/%{_ra}%&7 of %{_li}%&7)"
-                play sound "entity.villager.trade" at volume 1 and pitch 1 at location of player
-              else:
-                add 1 to {_rt}
+            if {_hs} > 0:
+              loop {_hs} times:
+                set {_si::*} to uncolored "%{items::%{_s.id::%loop-number-2%}%}%" split at "named "
+                set {_li} to {_si::2}
+                set {_ri} to {items::%{_s.id::%loop-number-2%}%}
+                set {_ra} to {_s.amount::%loop-number-2%}
+                set {_am} to amount of {_ri} in player's inventory
+                if {_am} < {_ra}:
+                  send "&7Insufficient items! (%{_am}%&7/%{_ra}%&7 of %{_li}%&7)"
+                  play sound "entity.villager.trade" at volume 1 and pitch 1 at location of player
+                else:
+                  add 1 to {_rt}
+              delete {_li}
+            else:
+              set {_rt} to {_hs}
             if {_rt} = {_hs}:
               delete {_rt}
               play sound "item.armor.equip_chain" at volume 1 and pitch 1.5 at location of player
               remove {_p} from {coins::%player's uuid%}
               remove {_ra} of {_ri} from player's inventory
               give player {_i}
-
+        delete {_r}
 
     else if {_name} = "Innkeeper":
       innkeeper(player)
