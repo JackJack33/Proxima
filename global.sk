@@ -120,12 +120,15 @@ on craft:
     cancel event
 
 on chat:
-  if player is op:
-    set chat format to "&c[A] &7%player%&f: %message%"
-  else if {betatesters::*} contains player:
-    set chat format to "&3[B] &7%player%&f: %message%"
+  if {prefix::%player's uuid%} is set:
+    set chat format to "%colored %{prefix::%player's uuid%}%% &7%player%&f: %message%"
+    
   else:
-    set chat format to "&7%player%&f: &f%message%"
+    if player is op:
+      set chat format to "&c[A] &7%player%&f: %message%"
+
+    else:
+      set chat format to "&7%player%&f: &f%message%"
 
 on walk on gold block:
   if {checkpoint::%player's uuid%} != location of block above event-block:
