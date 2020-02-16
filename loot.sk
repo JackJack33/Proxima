@@ -48,32 +48,5 @@ on pickup:
     drawDot count 5, particle "redstone", speed 1, RGB 255, 255, 0, center {_loc}, rainbowMode false, visibleRange 32, pulseDelay 0, keepFor 2 ticks
     delete event-entity
 
-on death:
-  if attacker is not a villager:
-    clear drops
-    set {_r1} to random integer between 0 and 2
-    set {_r2} to random integer between 0 and 5
-    set {_r3} to random integer between 0 and 10
-    set {_r4} to random integer between 0 and 20
-    set {_n} to uncolored display name of victim
-    if {_n} contains "Undead Twig":
-      drop {_r1} of gold nuggets at victim
-      chance of 30%:
-        drop 1 stick named "&fTwig" lored "&7Material" at victim
-    if {_n} contains "Undead Branch":
-      drop {_r1} of gold nuggets at victim
-      chance of 60%:
-        drop 1 stick named "&fTwig" lored "&7Material" at victim
-      chance of 20%:
-        drop 1 stick named "&fTwig" lored "&7Material" at victim
-    if {_n} contains "Rattler":
-      drop {_r1} of gold nuggets at victim
-      chance of 40%:
-        drop 1 bone named "&fBone" lored "&7Material" at victim
-    if {_n} contains "Acolyte":
-      drop {_r2} of gold nuggets at victim
-      chance of 10%:
-        drop {_r3} of gold nuggets at victim
-
 
 
