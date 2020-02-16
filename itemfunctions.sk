@@ -1,0 +1,44 @@
+#
+# Functions
+#
+ 
+function spellCheck(p: player, i: integer) :: integer:
+  set {_u} to uuid of {_p}
+  if {spellcheck::%{_p}%} is not set:
+    if {mana::%{_u}%} >= {_i}:
+      set {spellcheck::%{_p}%} to 1
+      remove {_i} from {mana::%{_u}%}
+      return 1
+    else:
+      send "&7Not enough mana!" to {_p}
+      return 0
+  else:
+    send "&7You already have an active spell!" to {_p}
+    return 0
+ 
+function endCheck(p: player):
+  delete {spellcheck::%{_p}%}
+
+function endClick(p: player):
+  delete {click::%{_p}%}
+ 
+function sphereCheck(e: entity, loc: location, rad: number, d: number) :: text:
+  if distance between location of {_e} and {_loc} <= {_rad}:
+    if "player, armor stand, slime" does not contain "%type of {_e}%":
+      damage {_e} by {_d}
+  return ""
+ 
+function lineCheck(p: player, d: number) :: location:
+  set {_locp} to location of {_p}
+  set {_locb} to location of target block of {_p}
+  if {_p}'s target is set:
+    set {_loct} to location of {_p}'s target
+    if distance between {_locp} and {_locb} > distance between {_locp} and {_loct}:
+      set {_r} to location 2 above {_p}'s target
+      if {_p}'s target is not a player:
+        damage {_p}'s target by {_d}
+    else:
+      set {_r} to location 1 above target block of {_p}
+  else:
+    set {_r} to location 1 above target block of {_p}
+  return {_r}
