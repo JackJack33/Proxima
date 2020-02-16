@@ -4,7 +4,8 @@
 
 on join:
   while player is online:
-    send action bar "&cHP [%player's health%&c/%player's max health%&c] &9MP [%{mana::%player's uuid%}%&9/%{maxmana::%player's uuid%}%&9] &6Coins [%{coins::%player's uuid%}%&6]" to player
+    if {actionbar::%player's uuid%} is not set:
+      send action bar "&cHP [%player's health%&c/%player's max health%&c] &9MP [%{mana::%player's uuid%}%&9/%{maxmana::%player's uuid%}%&9] &6Coins [%{coins::%player's uuid%}%&6]" to player
     wait 0.5 seconds
 
 on join:
@@ -43,6 +44,11 @@ on join:
 
 on damage:
   if victim is not a player:
+    if projectile exists:
+      if attacker is a player:
+        set {_damage} to metadata value "Damage" of event-projectile
+        set {_salt} to random number between 0.00 and 1.00
+        set damage to {_damage} parsed as number + {_salt}
     if uncolored display name of victim does not contain "-":
       if {dmgd::%victim's uuid%} is not set:
         set {dmgd::%victim's uuid%} to 1
@@ -52,7 +58,10 @@ on damage:
         add (random number between -0.8 and 0.8) to x-coordinate of {_loc}
         add (random number between -0.8 and 0.8) to z-coordinate of {_loc}
         if attacker is set:
-          create holo object "&c-%final damage%" with id "%attacker%.%{_r}%" at {_loc}
+          if projectile is not set:
+            create holo object "&c-%final damage%" with id "%attacker%.%{_r}%" at {_loc}
+          else:
+            create holo object "&c-%damage%" with id "%attacker%.%{_r}%" at {_loc}
         else:
           create holo object "&c-%damage%" with id "%attacker%.%{_r}%" at {_loc}
         wait 1 tick
@@ -65,6 +74,11 @@ on damage:
         wait 19 ticks
         delete holo object "%attacker%.%{_r}%"
 
+on shoot:
+  if shooter's tool is a bow:
+    set {_split::*} to uncolored lore of shooter's tool split at "Damage: +"
+    set metadata value "Damage" of event-projectile to {_split::2}
+
 on damage:
   if victim is monster:
     if damage cause is burn:
@@ -73,6 +87,12 @@ on damage:
   if victim is player:
     if attacker is player:
       cancel event
+
+on death:
+  if victim is not a player:
+    if victim is not a villager:
+      set {_r} to random integer between 0 and 10
+      spawn {_r} of xp at victim
 
 on death:
   if victim is player:
@@ -115,15 +135,63 @@ command /coins [<offlineplayer>]:
 # Misc
 #
 
+command /disableactionbar:
+  aliases: /disableab
+  trigger:
+    if {actionbar::%player's uuid%} is not set:
+      set {actionbar::%player's uuid%} to 1
+    else:
+      delete {actionbar::%player's uuid%}
+    send "&7Actionbar toggled"
+
+function getRoman(n: integer) :: text:	
+  set {_roman::*} to "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", and "X"
+  if {_n} > 10:
+    return "too big"
+  if {_n} < 1:
+    return "too small"
+  else:
+    return {_roman::%{_n}%}
+
+function getRTN(t: text) :: integer:
+  if {_t} is "I":
+    return 1
+  if {_t} is "II":
+    return 2
+  if {_t} is "III":
+    return 3
+  if {_t} is "IV":
+    return 4
+  if {_t} is "V":
+    return 5
+  if {_t} is "VI":
+    return 6
+  if {_t} is "VII":
+    return 7
+  else:
+    return 0
+
 on craft:
   if player is not op:
     cancel event
 
 on chat:
+  replace ":smile:" with "&b☺&r" in the message
+  replace ":check:" with "&a✔&r" in the message
+  replace ":x:" with "&c❌&r" in the message
+  replace ":shrug:" with "&e¯\_(ツ)_/¯&r" in the message
+  replace ":shurg:" with "&e-\-(:/}_\-&r" in the message
+  replace ":glasses:" with "&6(⌐■_■)&r" in the message
+  replace ":dab:" with "&3<o/&r" in the message
+  replace ":owo:" with "&dowo&r" in the message
+
+on chat:
   if player is op:
-    set chat format to "&c[A] &7%player%&f: %message%"
+    set chat format to "&c[A] &7%player%&f: %colored message%"
   else if {betatesters::*} contains player:
     set chat format to "&3[B] &7%player%&f: %message%"
+  else if {100} is player:
+    set chat format to "&5[100] &7%player%&f: %message%"
   else:
     set chat format to "&7%player%&f: &f%message%"
 
@@ -135,6 +203,11 @@ on walk on gold block:
 #
 # Operator Commands
 #
+
+command /setlevel <offlineplayer> <integer>:
+  permission: op
+  trigger:
+    set {level::%arg-1's uuid%} to arg-2
 
 command /beta <offlineplayer>:
   permission: op
