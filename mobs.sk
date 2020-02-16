@@ -9,15 +9,17 @@ every 8 seconds in world "ul_prox":
 # Spawning
 #
 
-command /spawnmob <text>:
+command /spawnmob <entitytype> <text>:
   permission: op
   trigger:
-    spawn skeleton at location of player
-    set last spawned skeleton's display name to arg-1
+    spawn arg-1 at location of player
+    set last spawned entity's display name to arg-2
+    if arg-1 is bat:
+      apply invisibility to last spawned entity for 999 days
 
 function spawnReturn(loc: location):
   if size of all players in radius {range::%{_loc}%} around {_loc} >= 1:
-    if size of all monsters in radius 30 around {_loc} < {max::%{_loc}%}:
+    if size of all monsters and bats in radius 30 around {_loc} < {max::%{_loc}%}:
       wait ("%random integer between 1 and 8% seconds" parsed as timespan)
 
       if {type::%{_loc}%} = "undeadtwig":
@@ -36,6 +38,71 @@ function spawnReturn(loc: location):
         spawnEntity(skeleton, {_loc}, "&fAcolyte", 20)
         equipEntity(last spawned skeleton, bone of efficiency 1)
 
+      if {type::%{_loc}%} = "treespider":
+        spawnEntity(spider, {_loc}, "&fTree Spider", 8)
+
+      if {type::%{_loc}%} = "sprite":
+        spawnEntity(bat, {_loc}, "&fSprite", 1)
+        apply invisibility without particles to last spawned bat for 999 days
+
+      if {type::%{_loc}%} = "wraith":
+        spawnEntity(bat, {_loc}, "&fWraith", 4)
+        apply invisibility without particles to last spawned bat for 999 days
+
+      if {type::%{_loc}%} = "phantasm":
+        spawnEntity(bat, {_loc}, "&fPhantasm", 16)
+        apply invisibility without particles to last spawned bat for 999 days
+
+      if {type::%{_loc}%} = "eidolon":
+        spawnEntity(bat, {_loc}, "&fEidolon", 64)
+        apply invisibility without particles to last spawned bat for 999 days
+
+#
+# Loot
+#
+
+on death:
+  if attacker is not a villager:
+    clear drops
+    set {_r1} to random integer between 0 and 2
+    set {_r2} to random integer between 0 and 5
+    set {_r3} to random integer between 0 and 10
+    set {_r4} to random integer between 0 and 20
+    set {_n} to uncolored display name of victim
+    if {_n} contains "Undead Twig":
+      drop {_r1} of gold nuggets at victim
+      chance of 30%:
+        drop 1 stick named "&fTwig" lored "&7Material" at victim
+    if {_n} contains "Undead Branch":
+      drop {_r1} of gold nuggets at victim
+      chance of 60%:
+        drop 1 stick named "&fTwig" lored "&7Material" at victim
+      chance of 20%:
+        drop 1 stick named "&fTwig" lored "&7Material" at victim
+    if {_n} contains "Rattler":
+      drop {_r1} of gold nuggets at victim
+      chance of 40%:
+        drop 1 bone named "&fBone" lored "&7Material" at victim
+    if {_n} contains "Acolyte":
+      drop {_r2} of gold nuggets at victim
+      chance of 10%:
+        drop {_r3} of gold nuggets at victim
+    if {_n} contains "Tree Spider":
+      drop {_r2} of gold nuggets at victim
+      chance of 40%:
+        drop 1 flint named "&fSpider Fang" lored "&7Material" at victim
+      drop {_r1} of gold nuggets at victim
+    if {_n} contains "Sprite":
+      drop {_r3} of gold nuggets at victim
+    if {_n} contains "Wraith":
+      drop {_r3} + {_r2} of gold nuggets at victim
+    if {_n} contains "Phantasm":
+      drop {_r4} of gold nuggets at victim
+    if {_n} contains "Eidolon":
+      drop {_r4} + {_r3} of gold nuggets at victim
+      
+
+
 #
 # Abilities
 #
@@ -49,12 +116,30 @@ on spawn:
       while event-entity is alive:
         if event-entity's target is set:
           play sound "entity.blaze.shoot" at volume 1 and pitch 2 at location of event-entity
-          drawLine particle redstone, RGB 255, 0, 255, center location of block 1 above event-entity, target location 1.5 above event-entity's target, id "%{_u}%.ability", solid true, density 10, visibleRange 32
+          drawLine particle redstone, RGB 255, 0, 255, center location of block 1 above event-entity, target location 1.5 above event-entity's target, id "acolyte.ability", solid true, density 10, visibleRange 32
           set {_r} to random number between 1.0 and 3.5
           damage event-entity's target by {_r}
         wait 2 ticks
-        stopEffect id "%{_u}%.ability"
+        stopEffect id "acolyte.ability"
         wait 5 seconds
+
+  if event-entity is a bat:
+    if {_n} contains "Sprite":
+      while event-entity is alive:
+        drawDot count 1, particle "redstone", RGB 200, 255, 255, center event-entity, visibleRange 32, pulseDelay 0, keepFor 1 tick
+        wait 2 ticks
+    if {_n} contains "Wraith":
+      while event-entity is alive:
+        drawDot count 1, particle "redstone", RGB 255, 255, 200, center event-entity, visibleRange 32, pulseDelay 0, keepFor 1 tick
+        wait 2 ticks
+    if {_n} contains "Phantasm":
+      while event-entity is alive:
+        drawDot count 1, particle "redstone", RGB 255, 200, 255, center event-entity, visibleRange 32, pulseDelay 0, keepFor 1 tick
+        wait 2 ticks
+    if {_n} contains "Eidolon":
+      while event-entity is alive:
+        drawDot count 1, particle "redstone", RGB 180, 255, 180, center event-entity, visibleRange 32, pulseDelay 0, keepFor 1 tick
+        wait 2 ticks
 
 
 #
@@ -69,6 +154,7 @@ function spawnMockReturn(loc: location) :: text:
 function spawnEntity(x: entitytype, loc: location, n: text, h: number):
   spawn {_x} at {_loc}
   set {_e} to last spawned entity
+  add "{CustomNameVisible:1}" to nbt of {_e}
   set displayname of last spawned entity to "%{_n}% &6%{_h}%"
   set {_e}'s max health to {_h}
   set {_e}'s health to {_h}
