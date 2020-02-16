@@ -62,7 +62,7 @@ on right click:
     if spellCheck(player, 15) = 1:
       play sound "item.totem.use" at volume 1 and pitch 2 at location of player
       drawDot count 100, particle "fireworkspark", speed 1, XYZ 0.3, 0.3, 0.3, center location of player, visibleRange 32, pulseDelay 0, keepFor 1 tick
-      set {_t::*} to (all entities) where [sphereCheck(input, location of block at location of player, 3.5, 12) = ""]
+      set {_t::*} to (all entities) where [sphereCheck(input, location of block at location of player, 4, 12) = ""]
       wait 1 tick
       endCheck(player)
 
@@ -70,58 +70,42 @@ on right click:
 # Specials
 #
 
+on right click on bat:
+  if uncolored name of player's tool contains "Spirit Bottle":
+    if {level::%player's uuid%} is not set:
+      set {level::%player's uuid%} to 1
+    set {_n} to uncolored name of event-entity
+    if player's gamemode is not creative:
+      remove 1 of player's tool from player
+    if {_n} contains "Sprite":
+      set {_i} to potion named "&fPixie in a Bottle"
+      add "{CustomPotionColor:7929855}" to nbt of {_i}
+    if {_n} contains "Wraith":
+      set {_i} to potion named "&eWraith in a Bottle"
+      add "{CustomPotionColor:16777080}" to nbt of {_i}
+    if {_n} contains "Phantasm":
+      set {_i} to potion named "&dPhantasm in a Bottle"
+      add "{CustomPotionColor:16742655}" to nbt of {_i}
+    if {_n} contains "Eidolon":
+      set {_i} to potion named "&aEidolon in a Bottle"
+      add "{CustomPotionColor:7929720}" to nbt of {_i}
+    if {_i} is set:
+      play sound "item.bottle.fill_dragonbreath" at volume 1 and pitch 1.5 at location of player
+      add "{HideFlags:63}" to nbt of {_i}
+      give player {_i} lored "&7Material||&7It glows with a||&7strange energy.."
+      teleport event-entity to location(0, -100, 0, world("ul_prox"))
+
+on consume:
+  cancel event
+
+
 on step on cracked stone bricks:
   if uncolored name of player's boots is "Weighted Boots":
-    set event-block to air
-    play sound "block.stone.break" at volume 1 and pitch 0.5 at location of event-block
-    drawDot count 20, particle "blockcrack", material cracked stone bricks, speed 0.2, XYZ 0.3, 0.3, 0.3, center location of event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
-    wait 5 seconds
-    set event-block to cracked stone bricks
-    play sound "block.stone.place" at volume 1 and pitch 1 at location of event-block
-    drawDot count 20, particle "smoke", speed 0.02, XYZ 0.3, 0.3, 0.3, center location of event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
-
-#
-# Functions
-#
- 
-function spellCheck(p: player, i: integer) :: integer:
-  set {_u} to uuid of {_p}
-  if {spellcheck::%{_p}%} is not set:
-    if {mana::%{_u}%} >= {_i}:
-      set {spellcheck::%{_p}%} to 1
-      remove {_i} from {mana::%{_u}%}
-      return 1
-    else:
-      send "&7Not enough mana!" to {_p}
-      return 0
-  else:
-    send "&7You already have an active spell!" to {_p}
-    return 0
- 
-function endCheck(p: player):
-  delete {spellcheck::%{_p}%}
-
-function endClick(p: player):
-  delete {click::%{_p}%}
- 
-function sphereCheck(e: entity, loc: location, rad: number, d: number) :: text:
-  if distance between location of {_e} and {_loc} <= {_rad}:
-    if "player, armor stand, slime" does not contain "%type of {_e}%":
-      damage {_e} by {_d}
-  return ""
- 
-function lineCheck(p: player, d: number) :: location:
-  set {_locp} to location of {_p}
-  set {_locb} to location of target block of {_p}
-  if {_p}'s target is set:
-    set {_loct} to location of {_p}'s target
-    if distance between {_locp} and {_locb} > distance between {_locp} and {_loct}:
-      set {_r} to location 2 above {_p}'s target
-      if {_p}'s target is not a player:
-        damage {_p}'s target by {_d}
-    else:
-      set {_r} to location 1 above target block of {_p}
-  else:
-    set {_r} to location 1 above target block of {_p}
-  return {_r}ion 1 above target block of {_p}
-  return {_r}
+    if block at location of event-block is not air:
+      set event-block to air
+      play sound "block.stone.break" at volume 1 and pitch 0.5 at location of event-block
+      drawDot count 10, particle "blockcrack", material cracked stone bricks, speed 0.2, XYZ 0.3, 0.3, 0.3, center location of event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
+      wait 5 seconds
+      set event-block to cracked stone bricks
+      play sound "block.stone.place" at volume 1 and pitch 1 at location of event-block
+      drawDot count 5, particle "smoke", speed 0.02, XYZ 0.3, 0.3, 0.3, center location of event-block, visibleRange 32, pulseDelay 0, keepFor 1 tick
