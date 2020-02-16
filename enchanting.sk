@@ -1,0 +1,111 @@
+#
+# Enchanting
+#
+
+on click on enchanting table:
+  cancel event
+  if {level::%player's uuid%} >= 1:
+    if player's tool is air:
+      send "&7Please hold an item"
+    else:
+      set {enchopen::%player's uuid%} to 1
+      openGui(player, "Enchanting", 2)
+      format gui slot 0 of player with oak sign named "&fYour Item"
+      format gui slot 2 of player with oak sign named "&fFuel (Spirit)"
+      format gui slot 4 of player with oak sign named "&fEnchantments"
+      format gui slot 1, 3,10, and 12 of player with gray stained glass pane named "&7"
+      format gui slot 9 of player with player's tool
+  else:
+    send "&7You must first capture a spirit to use this"
+
+on inventory click:
+  if {enchopen::%player's uuid%} = 1:
+    set {_s} to uncolored name of clicked slot
+    if {_s} does not contain " in a Bottle":
+      if type of clicked slot is not air:
+        cancel event
+    if clicked slot is 11:
+      if type of clicked slot is not air:
+        wait 1 tick
+        format gui slot 13, 14, 15, 16, and 17 of player with air
+      else if type of clicked slot is air:
+        if type of cursor is not air:
+          set {_s} to slot 9 of event-inventory
+          set {_t::*} to lore of {_s} split at "&6["
+          set {_t2::*} to {_t::2} split at "]"
+          set {_t3::*} to {_t2::1} split at "/"
+          if {_t3::1} is not set:
+            wait 1 tick
+            format gui slot 13 of player with barrier named "&cInvalid item"
+          else:
+            set {_ench::*} to "Icicle", "Throw", and "Viper"
+            set {_t} to uncolored name of cursor
+            wait 1 tick
+            if {_t3::1} >= {_t3::2}:
+              format gui slot 13 of player with barrier named "&cNo slots available"
+            else:
+              format gui slot 13, 14, 15, 16, and 17 of player with book named "&7???"
+              if {_t} contains "Pixie":
+                set {_max} to 2
+              if {_t} contains "Wraith":
+                set {_max} to 3
+              if {_t} contains "Phantasm":
+                set {_max} to 4
+              if {_t} contains "Eidolon":
+                set {_max} to 5
+              wait 1 tick
+              loop {_max} times:
+                set {_e} to random element of {_ench::*}
+                set {_n} to random integer between 1 and {_max}
+                set {_l} to getRoman({_n})
+                set {_e} to "&f%{_e}% &f%{_l}%"
+                set {_c} to 3*{_n}
+                set {_d} to "&7Cost: %{_c}%&7 levels"
+                set {_i} to book of efficiency 1 named {_e} lored {_d}
+                add "{HideFlags:63}" to nbt of {_i}
+                format gui slot 12 + loop-number of player with {_i} to run:
+                  if player's level < {_c}:
+                    send "&7Not enough levels! (%player's level%&7/%{_c}%&7)"
+                    play sound "block.stone.break" at volume 1 and pitch 1 at location of player
+                  else:
+                    remove {_c} from player's level
+                    format gui slot 11 of player with {items::28}
+                    close player's inventory
+                    set lore of player's tool to "%{_t::1}%&6[%{_t3::2} + 1%&6/%{_t3::2}%&6]%{_t2::2}%|| ||&7%uncolored {_e}%"
+                    enchant player's tool with unbreaking 1
+                    play sound "entity.player.levelup" at volume 5 and pitch 0.5 at player
+          
+
+on inventory close:
+  if {enchopen::%player's uuid%} = 1:
+    delete {enchopen::%player's uuid%}
+    drop 1 of slot 11 of event-inventory at player
+
+#
+# Events
+#
+
+on damage:
+  if victim is not a player:
+    set {_t::*} to uncolored lore of attacker's tool split at "|| ||"
+    set {_t2::*} to {_t::2} split at "||"
+    set {_n} to size of {_t2::*}
+    loop {_n} times:
+      set {_t3::*} to {_t2::%loop-number%} split at " "
+      set {_l} to {_t3::2}
+      set {_l} to getRTN({_l})
+      if {_t3::1} contains "Icicle":
+        set {_d} to 1.5*{_l}+1
+        set {_d} to {_d} parsed as integer
+        chance of {_l}*20%:
+          apply slowness of tier {_l} to victim for "%{_d}% seconds" parsed as timespan
+      if {_t3::1} contains "Throw":
+        set {_f} to 0.75*{_l}
+        chance of {_l}*20%:
+          push victim in direction of attacker at speed {_f}
+          push victim up at speed 0.2
+      if {_t3::1} contains "Viper":
+        set {_d} to 1.5*{_l}+1
+        set {_d} to {_d} parsed as integer
+        chance of {_l}*20%:
+          apply poison of tier {_l} to victim for "%{_d}% seconds" parsed as timespan
