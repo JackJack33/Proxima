@@ -4,6 +4,7 @@
 
 on right click on entity:
   if entity is citizen:
+    set {shopopen::%player's uuid%} to 1
     set {_id} to citizen id of clicked entity
     set {_name} to uncolored name of citizen {_id}
     if {_name} != "Guard", "Innkeeper" or "Merchant":
